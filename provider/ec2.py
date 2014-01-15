@@ -211,6 +211,17 @@ def _prepare_run_kwargs(params):
         kwargs.update({'user_data': user_data})
     # params override defaults
     kwargs.update(param_kwargs)
+
+    # tmp hack to increase EBS size
+    def init_bdm(size):
+        """size is int in GB"""
+        dev_sda1 = ec2.blockdevicemapping.EBSBlockDeviceType()
+        dev_sda1.size = size # size in Gigabytes
+        bdm = ec2.blockdevicemapping.BlockDeviceMapping()
+        bdm['/dev/sda1'] = dev_sda1
+
+    kwargs['block_device_mapping'] = init_bdm(params.get('storage_size', 40))
+
     return kwargs
 
 
