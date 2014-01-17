@@ -557,9 +557,10 @@ def deispush(request, id=None):
     from django.http import HttpResponse
     f = request.FILES['code']
     import tempfile
-    t, tpath = tempfile.mkstemp()
-    t.write(f.read())
-    t.close()
+    _, tpath = tempfile.mkstemp()
+    with open(tpath, 'wb') as t:
+        t.write(f.read())
+        t.close()
     print "Wrote tar to " + tpath
     out, err, rc = models.Build.deispush(tpath, 'admin')
     data = {'out': out, 'err': err, 'rc': rc}
