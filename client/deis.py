@@ -385,7 +385,7 @@ class DeisClient(object):
         self._session = Session()
         self._settings = Settings()
 
-    def _dispatch(self, method, path, body=None,
+    def _dispatch(self, method, path, body=None, files=None,
                   headers={'content-type': 'application/json'}, **kwargs):
         """
         Dispatch an API request to the active Deis controller
@@ -396,7 +396,7 @@ class DeisClient(object):
             raise EnvironmentError(
                 'No active controller. Use `deis login` or `deis register` to get started.')
         url = urlparse.urljoin(controller, path, **kwargs)
-        response = func(url, data=body, headers=headers)
+        response = func(url, files=files, data=body, headers=headers)
         return response
 
     def apps(self, args):
@@ -485,6 +485,50 @@ class DeisClient(object):
             print('Git remote deis added')
         else:
             raise ResponseError(response)
+
+    def apps_push(self, args):
+        """
+        Push code to build, release, run an existing application.
+
+        Usage: deis apps:push <codepath> [--app=<app>]
+        """
+        app = args.get('--app')
+        if not app:
+            app = self._session.app
+
+        # tar up the app
+        appdir = args['<codepath>']
+
+        contents = os.listdir(appdir)
+        import tarfile
+        _t = tarfile.open(os.path.join(appdir, '_deis_payload.tar'), 'w')
+        for fname in contents:
+            _t.add(os.path.join(appdir, fname), arcname=fname)
+        _t.close()
+        tar = os.path.join(appdir, '_deis_payload.tar')
+
+        # send it to timbuktu
+
+        sys.stdout.write('Pushing code... ')
+        sys.stdout.flush()
+        try:
+            progress = TextProgress()
+            progress.start()
+            with open(tar, 'rb') as f:
+                files = { 'code': f }
+                response = self._dispatch('post',
+                                          "/api/apps/{}/push".format(app),
+                                          '', files=files)
+        finally:
+            progress.cancel()
+            progress.join()
+
+        # case on the response
+        if response.status_code == requests.codes.ok:  # @UndefinedVariable
+            print(response.text)
+        else:
+            raise ResponseError(response)
+
 
     def apps_destroy(self, args):
         """
@@ -2034,6 +2078,7 @@ def parse_args(cmd):
         'login': 'auth:login',
         'logout': 'auth:logout',
         'create': 'apps:create',
+        'push': 'apps:push',
         'destroy': 'apps:destroy',
         'ps': 'containers:list',
         'info': 'apps:info',
