@@ -21,19 +21,21 @@ Note this script must be run as the `git` user.
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('src', action='store',
-                        help='path to source repository')
+                        help='path to source repository or tar (tar must be <app name>.tar')
     parser.add_argument('user', action='store',
                         help='name of user who started build',
                         default='system')
     # check execution environment
+    """
     if getpass.getuser() != 'git':
         sys.stderr.write('This script must be run as the "git" user\n')
         parser.print_help()
         sys.exit(1)
+    """
     args = parser.parse_args()
     args.src = os.path.abspath(args.src)
     # store app ID
-    args.app = '/'.join(args.src.split(os.path.sep)[-1:]).replace('.git', '')
+    args.app = '/'.join(args.src.split(os.path.sep)[-1:]).replace('.git', '').replace('.tar', '')
     return args
 
 
@@ -62,11 +64,18 @@ def exit_on_error(error_code, msg):
 if __name__ == '__main__':
     args = parse_args()
     # get sha of master
-    try:
-        with open(os.path.join(args.src, 'refs/heads/master')) as f:
-            sha = f.read().strip('\n')
-    except IOError:
-        exit_on_error(2, 'Could not read the repository SHA--is the refspec correct?')
+    if args.src.endswith('.tar'):
+        def sha1OfFile(filepath):
+            import hashlib
+            with open(filepath, 'rb') as f:
+                return hashlib.sha1(f.read()).hexdigest()
+        sha = sha1OfFile(args.src)
+    else:
+        try:
+            with open(os.path.join(args.src, 'refs/heads/master')) as f:
+                sha = f.read().strip('\n')
+        except IOError:
+            exit_on_error(2, 'Could not read the repository SHA--is the refspec correct?')
     # prepare for buildpack run
     slug_path = os.path.join(SLUG_DIR, '{0}-{1}.tar.gz'.format(args.app, sha))
     # create cache dir
@@ -74,7 +83,11 @@ if __name__ == '__main__':
     if not os.path.exists(cache_dir):
         os.mkdir(cache_dir)
     # build/compile
-    cmd = "git archive master | docker run -i -a stdin" \
+    if args.src.endswith('.tar'):
+        tar_cmd = "cat " + args.src
+    else:
+        tar_cmd = "git archive master"
+    cmd = tar_cmd + " | docker run -i -a stdin" \
           " -v {cache_dir}:/tmp/cache:rw " \
           " -v /opt/deis/build/packs:/tmp/buildpacks:rw " \
           " deis/slugbuilder"
@@ -132,7 +145,6 @@ if __name__ == '__main__':
     # prepare the push-hook
     push = {'username': args.user, 'app': args.app, 'sha': sha, 'checksum': checksum,
             'config': release.get('config_vars', {})}
-    # TODO: why can't we run this with `sudo -u deis`?
     output = subprocess.check_output(
         ['sudo', '-u', 'deis', "{}/bin/pre-push-hook".format(CONTROLLER_DIR)])
     data = json.loads(output)

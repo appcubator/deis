@@ -766,6 +766,19 @@ class Build(UuidAuditedModel):
         return "{0}-{1}".format(self.app.id, self.sha[:7])
 
     @classmethod
+    def gitpush(cls, apptardir, username):
+        """
+        apptardir is the path where the tar of the app lives.
+        """
+        # slugbuilder hook
+        build_hook = "/opt/deis/controller/bin/slugbuilder-hook.py"
+        logger.debug('Running build hook: %s' % build_hook)
+        p = subprocess.Popen([build_hook, apptardir, username], stdout=subprocess.pipe, stderr=subprocess.pipe)
+        out, err = p.communicate()
+        rc = p.wait()
+        return (out, err, rc)
+
+    @classmethod
     def push(cls, push):
         """Process a push from a local Git server.
 
