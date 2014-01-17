@@ -773,7 +773,7 @@ class Build(UuidAuditedModel):
         # slugbuilder hook
         build_hook = "/opt/deis/controller/bin/slugbuilder-hook.py"
         logger.debug('Running build hook: %s' % build_hook)
-        p = subprocess.Popen([build_hook, apptar, username], stdout=subprocess.pipe, stderr=subprocess.pipe)
+        p = subprocess.Popen([build_hook, apptar, username], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         rc = p.wait()
         return (out, err, rc)
