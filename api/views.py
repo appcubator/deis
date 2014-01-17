@@ -556,20 +556,18 @@ def deispush(request, id=None):
     """Awkward turtle code."""
     print "id: " + id
 
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.info(str(request.FILES.keys()))
-    return HttpResponse('ok')
+
+    from django.http import HttpResponse
+    return HttpResponse(json.dumps(request.FILES.keys()))
     f = request.FILES['code']
     import tempfile
-    from django.http import HttpResponse
     t, tpath = tempfile.mkstemp()
     t.write(f.read())
     t.close()
     print "Wrote tar to " + tpath
     out, err, rc = models.Build.deispush(tpath, 'admin')
     data = {'out': out, 'err': err, 'rc': rc}
-    return HttpResponse(json.stringify(data), content_type="application/json")
+    return HttpResponse(json.dumps(data), content_type="application/json")
 
 
 class AppPushViewSet(viewsets.ModelViewSet):
