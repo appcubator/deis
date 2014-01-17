@@ -35,7 +35,7 @@ Note this script must be run as the `git` user.
     args = parser.parse_args()
     args.src = os.path.abspath(args.src)
     # store app ID
-    args.app = '/'.join(args.src.split(os.path.sep)[-1:]).replace('.git', '').replace('.tar', '')
+    args.app = '/'.join(args.src.split(os.path.sep)[-1:]).replace('.git', '')
     return args
 
 
@@ -64,7 +64,7 @@ def exit_on_error(error_code, msg):
 if __name__ == '__main__':
     args = parse_args()
     # get sha of master
-    if args.src.endswith('.tar'):
+    if not args.src.endswith('.git'):
         def sha1OfFile(filepath):
             import hashlib
             with open(filepath, 'rb') as f:
@@ -83,8 +83,8 @@ if __name__ == '__main__':
     if not os.path.exists(cache_dir):
         os.mkdir(cache_dir)
     # build/compile
-    if args.src.endswith('.tar'):
-        tar_cmd = "cat " + args.src
+    if not args.src.endswith('.git'):
+        tar_cmd = "cat " + os.path.join(args.src, args.name + '.tar')
     else:
         tar_cmd = "git archive master"
     cmd = tar_cmd + " | docker run -i -a stdin" \

@@ -555,14 +555,20 @@ class BaseAppViewSet(viewsets.ModelViewSet):
 def deispush(request, id=None):
     """Awkward turtle code."""
     from django.http import HttpResponse
-    f = request.FILES['code']
     import tempfile
-    _, tpath = tempfile.mkstemp()
-    with open(tpath, 'wb') as t:
-        t.write(f.read())
-        t.close()
-    print "Wrote tar to " + tpath
-    out, err, rc = models.Build.deispush(tpath, 'admin')
+    import os
+    import subprocess
+
+    f = request.FILES['code']
+    tpath = tempfile.mkdtemp()
+    ttpath = os.path.join(tpath, 'owlish-sandwich')
+    os.mkdir(ttpath)
+    with open(os.path.join(ttpath, 'owlish-sandwich.tar'), 'wb') as ff:
+        ff.write(f.read())
+    p = subprocess.Popen(['tar', 'xf', 'owlish-sandwich.tar'], cwd=ttpath)
+    p.wait()
+    print "Wrote tar to " + ttpath
+    out, err, rc = models.Build.deispush(ttpath, 'admin')
     data = {'out': out, 'err': err, 'rc': rc}
     return HttpResponse(json.dumps(data), content_type="application/json")
 
