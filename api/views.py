@@ -554,11 +554,7 @@ class BaseAppViewSet(viewsets.ModelViewSet):
 
 def deispush(request, id=None):
     """Awkward turtle code."""
-    print "id: " + id
-
-
     from django.http import HttpResponse
-    return HttpResponse(json.dumps(request.FILES.keys()))
     f = request.FILES['code']
     import tempfile
     t, tpath = tempfile.mkstemp()

@@ -395,8 +395,7 @@ class DeisClient(object):
         if not controller:
             raise EnvironmentError(
                 'No active controller. Use `deis login` or `deis register` to get started.')
-        #url = urlparse.urljoin(controller, path, **kwargs)
-        url = 'http://requestb.in/w5wu3ow5'
+        url = urlparse.urljoin(controller, path, **kwargs)
         response = func(url, files=files, data=body, headers=headers)
         return response
 
@@ -518,8 +517,7 @@ class DeisClient(object):
             with open(tar, 'rb') as f:
                 files = { 'code': f }
                 response = self._dispatch('post',
-                                          "/api/apps/{}/deispush".format(app),
-                                          '', files=files)
+                                          "/api/apps/{}/deispush".format(app), files=files, headers={})
         finally:
             progress.cancel()
             progress.join()
