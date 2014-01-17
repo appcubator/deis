@@ -26,6 +26,7 @@ Note this script must be run as the `git` user.
                         help='name of user who started build',
                         default='system')
     # check execution environment
+    print 'executing as user: ' + getpass.getuser()
     """
     if getpass.getuser() != 'git':
         sys.stderr.write('This script must be run as the "git" user\n')
@@ -69,7 +70,8 @@ if __name__ == '__main__':
             import hashlib
             with open(filepath, 'rb') as f:
                 return hashlib.sha1(f.read()).hexdigest()
-        sha = sha1OfFile(args.src)
+        sha = sha1OfFile(os.path.join(args.src, args.app + '.tar'))
+
     else:
         try:
             with open(os.path.join(args.src, 'refs/heads/master')) as f:
@@ -84,7 +86,7 @@ if __name__ == '__main__':
         os.mkdir(cache_dir)
     # build/compile
     if not args.src.endswith('.git'):
-        tar_cmd = "cat " + os.path.join(args.src, args.name + '.tar')
+        tar_cmd = "cat " + os.path.join(args.src, args.app + '.tar')
     else:
         tar_cmd = "git archive master"
     cmd = tar_cmd + " | docker run -i -a stdin" \
