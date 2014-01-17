@@ -183,7 +183,7 @@ def converge_node(node):
     output, rc = exec_ssh(ssh, 'sudo chef-client')
     print(output)
     if rc != 0:
-        e = RuntimeError('Node converge error')
+        e = RuntimeError('Node converge error: '+output)
         e.output = output
         raise e
     return output, rc
