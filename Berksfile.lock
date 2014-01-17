@@ -12,7 +12,7 @@
     "deis": {
       "locked_version": "0.4.1",
       "git": "https://github.com/appcubator/deis-cookbook.git",
-      "ref": "1972e5e7437e13aabee86042857765270ee703b8"
+      "ref": "462f1e7780cba2974d670ff31403fde2a096c6a5"
     }
   }
 }

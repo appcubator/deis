@@ -145,8 +145,12 @@ if __name__ == '__main__':
     # prepare the push-hook
     push = {'username': args.user, 'app': args.app, 'sha': sha, 'checksum': checksum,
             'config': release.get('config_vars', {})}
+    if getpass.getuser() == 'deis':
+        runas_deis = []
+    else:
+        runas_deis = ['sudo', '-u', 'deis']
     output = subprocess.check_output(
-        ['sudo', '-u', 'deis', "{}/bin/pre-push-hook".format(CONTROLLER_DIR)])
+        runas_deis + ["{}/bin/pre-push-hook".format(CONTROLLER_DIR)])
     data = json.loads(output)
     ip = data['domain']
     push['url'] = "http://{ip}/slugs/{args.app}-{sha}.tar.gz".format(**locals())
@@ -157,7 +161,7 @@ if __name__ == '__main__':
     # run stage
     sys.stdout.write("       " + "Launching... ")
     sys.stdout.flush()
-    p = subprocess.Popen(['sudo', '-u', 'deis', "{}/bin/push-hook".format(CONTROLLER_DIR)],
+    p = subprocess.Popen(runas_deis + ["{}/bin/push-hook".format(CONTROLLER_DIR)],
                          stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate(json.dumps(push))
     rc = p.wait()

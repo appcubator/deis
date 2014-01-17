@@ -521,6 +521,7 @@ class DeisClient(object):
         finally:
             progress.cancel()
             progress.join()
+            os.remove(tar)
 
         # case on the response
         if response.status_code == requests.codes.ok:  # @UndefinedVariable
