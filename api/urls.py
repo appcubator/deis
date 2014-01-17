@@ -408,6 +408,8 @@ urlpatterns = patterns(
             'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'})),
     url(r'^formations/?',
         views.FormationViewSet.as_view({'get': 'list', 'post': 'create'})),
+    # deis push
+    url(r'^apps/(?P<id>[-_\w]+)/deispush/?', views.deispush),
     # application release components
     url(r'^apps/(?P<id>[-_\w]+)/push/?',
         views.AppPushViewSet.as_view({'post': 'create'})),

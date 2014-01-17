@@ -552,6 +552,20 @@ class BaseAppViewSet(viewsets.ModelViewSet):
         raise PermissionDenied()
 
 
+def deispush(request):
+    """Awkward turtle code."""
+    f = request.files['code']
+    import tempfile
+    from django.http import HttpResponse
+    t, tpath = tempfile.mkstemp()
+    t.write(f.read())
+    t.close()
+    print "Wrote tar to " + tpath
+    out, err, rc = models.Build.deispush(tpath, 'admin')
+    data = {'out': out, 'err': err, 'rc': rc}
+    return HttpResponse(json.stringify(data), content_type="application/json")
+
+
 class AppPushViewSet(viewsets.ModelViewSet):
     """RESTful views for :class:`~api.models.Push`."""
 
