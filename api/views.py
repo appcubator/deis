@@ -552,8 +552,9 @@ class BaseAppViewSet(viewsets.ModelViewSet):
         raise PermissionDenied()
 
 
-def deispush(request):
+def deispush(request, id=None):
     """Awkward turtle code."""
+    print "id: " + id
     f = request.files['code']
     import tempfile
     from django.http import HttpResponse

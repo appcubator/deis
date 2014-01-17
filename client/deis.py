@@ -517,7 +517,7 @@ class DeisClient(object):
             with open(tar, 'rb') as f:
                 files = { 'code': f }
                 response = self._dispatch('post',
-                                          "/api/apps/{}/push".format(app),
+                                          "/api/apps/{}/deispush".format(app),
                                           '', files=files)
         finally:
             progress.cancel()
