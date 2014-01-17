@@ -555,7 +555,10 @@ class BaseAppViewSet(viewsets.ModelViewSet):
 def deispush(request, id=None):
     """Awkward turtle code."""
     print "id: " + id
-    print request.FILES.keys()
+
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(str(request.FILES.keys()))
     return HttpResponse('ok')
     f = request.FILES['code']
     import tempfile
