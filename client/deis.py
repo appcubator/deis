@@ -486,6 +486,38 @@ class DeisClient(object):
         else:
             raise ResponseError(response)
 
+    def apps_create_without_git(self, args):
+        """
+        Create a new application
+
+        If no ID is provided, one will be generated automatically.
+        If no formation is provided, the first available will be used.
+
+        Usage: deis apps:create [--id=<id> --formation=<formation>]
+        """
+        body = {}
+        for opt in ('--id', '--formation'):
+            o = args.get(opt)
+            if o:
+                body.update({opt.strip('-'): o})
+        sys.stdout.write('Creating application... ')
+        sys.stdout.flush()
+        try:
+            progress = TextProgress()
+            progress.start()
+            response = self._dispatch('post', '/api/apps',
+                                      json.dumps(body))
+        finally:
+            progress.cancel()
+            progress.join()
+        if response.status_code == requests.codes.created:  # @UndefinedVariable
+            data = response.json()
+            app_id = data['id']
+            print("done, created {}".format(app_id))
+            return app_id
+        else:
+            raise ResponseError(response)
+
     def apps_push(self, args):
         """
         Push code to build, release, run an existing application.
@@ -526,6 +558,7 @@ class DeisClient(object):
         # case on the response
         if response.status_code == requests.codes.ok:  # @UndefinedVariable
             print(response.text)
+            return response.json()
         else:
             raise ResponseError(response)
 
