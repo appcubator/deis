@@ -562,7 +562,7 @@ def deispush(request, id=None):
     import os
     import subprocess
 
-    app = request.POST['app'] = get_object_or_404(models.App, id=self.kwargs['id'])
+    app = request.POST['app'] = get_object_or_404(models.App, id=id)
 
     # write the given tarfile to temp directory
     f = request.FILES['code']
