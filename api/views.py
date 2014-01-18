@@ -553,22 +553,35 @@ class BaseAppViewSet(viewsets.ModelViewSet):
 
 
 def deispush(request, id=None):
-    """Awkward turtle code."""
+    """
+    Awkward turtle code.
+    Expects POST request with tar file of the code in the 'code' key
+    """
     from django.http import HttpResponse
     import tempfile
     import os
     import subprocess
 
+    app = request.POST['app'] = get_object_or_404(models.App, id=self.kwargs['id'])
+
+    # write the given tarfile to temp directory
     f = request.FILES['code']
     tpath = tempfile.mkdtemp()
-    ttpath = os.path.join(tpath, 'owlish-sandwich')
+    ttpath = os.path.join(tpath, app.id)
     os.mkdir(ttpath)
-    with open(os.path.join(ttpath, 'owlish-sandwich.tar'), 'wb') as ff:
+    with open(os.path.join(ttpath, app.id + '.tar'), 'wb') as ff:
         ff.write(f.read())
-    p = subprocess.Popen(['tar', 'xf', 'owlish-sandwich.tar'], cwd=ttpath)
+
+    # untar it. potentially unsafe. such is life.
+    p = subprocess.Popen(['tar', 'xf', app.id + '.tar'], cwd=ttpath)
     p.wait()
-    print "Wrote tar to " + ttpath
-    out, err, rc = models.Build.deispush(ttpath, 'admin')
+
+    # call the slugbuilder-hook script
+    out, err, rc = models.Build.deispush(ttpath, app.owner.username)
+
+    # cleanup
+    os.remove(ttpath)
+
     data = {'out': out, 'err': err, 'rc': rc}
     return HttpResponse(json.dumps(data), content_type="application/json")
 

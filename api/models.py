@@ -770,12 +770,15 @@ class Build(UuidAuditedModel):
         """
         apptar is the path where the tar of the app lives.
         """
-        # slugbuilder hook
+        # TODO don't hardcode these
         build_hook = "/opt/deis/controller/bin/slugbuilder-hook.py"
+        SLUG_DIR = '/opt/deis/build/slugs'
+        CONTROLLER_DIR = '/opt/deis/controller'
+
         logger.debug('Running build hook: %s' % build_hook)
         env = os.environ.copy()
-        env.update({ 'SLUG_DIR':'/opt/deis/build/slugs',
-                'CONTROLLER_DIR': '/opt/deis/controller' })
+        env.update({ 'SLUG_DIR': SLUG_DIR,
+                     'CONTROLLER_DIR': CONTROLLER_DIR })
         p = subprocess.Popen([build_hook, apptar, username], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         out, err = p.communicate()
         rc = p.wait()
