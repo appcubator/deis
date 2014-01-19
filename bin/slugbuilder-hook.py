@@ -92,6 +92,7 @@ if __name__ == '__main__':
     cmd += cmd + " | docker run -i -a stdin"
     if 'BUILDPACK_URL' in os.environ:
         cmd += " -e BUILDPACK_URL=" + os.environ['BUILDPACK_URL']
+        "USING CUSTOM BUILDPACK AT "+ os.environ['BUILDPACK_URL']
     cmd += " -v {cache_dir}:/tmp/cache:rw " \
           " -v /opt/deis/build/packs:/tmp/buildpacks:rw " \
           " deis/slugbuilder"

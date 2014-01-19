@@ -579,6 +579,7 @@ def deispush(request, id=None):
 
     # call the slugbuilder-hook script
     buildpack_url = request.POST.get('buildpack_url', None)  #TODO get this from the app's config instead if people care enough about it.
+    print "In view, buildpack_url: "+ buildpack_url
     out, err, rc = models.Build.deispush(ttpath, app.owner.username, buildpack_url=buildpack_url)
 
     # cleanup

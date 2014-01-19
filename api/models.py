@@ -781,6 +781,7 @@ class Build(UuidAuditedModel):
                      'CONTROLLER_DIR': CONTROLLER_DIR })
         if buildpack_url is not None:
             env['BUILDPACK_URL'] = buildpack_url
+            print "ADDED IT TO ENV"
         p = subprocess.Popen([build_hook, apptar, username], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         out, err = p.communicate()
         rc = p.wait()
