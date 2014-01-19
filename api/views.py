@@ -561,6 +561,7 @@ def deispush(request, id=None):
     import tempfile
     import os
     import subprocess
+    import shutil
 
     app = request.POST['app'] = get_object_or_404(models.App, id=id)
 
@@ -580,7 +581,7 @@ def deispush(request, id=None):
     out, err, rc = models.Build.deispush(ttpath, app.owner.username)
 
     # cleanup
-    os.remove(ttpath)
+    shutil.rmtree(ttpath)
 
     data = {'out': out, 'err': err, 'rc': rc}
     return HttpResponse(json.dumps(data), content_type="application/json")
