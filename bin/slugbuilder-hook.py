@@ -89,7 +89,7 @@ if __name__ == '__main__':
         cmd = "cat " + os.path.join(args.src, args.app + '.tar')
     else:
         cmd = "git archive master"
-    cmd += cmd + " | docker run -i -a stdin"
+    cmd += " | docker run -i -a stdin"
     if 'BUILDPACK_URL' in os.environ:
         cmd += " -e BUILDPACK_URL=" + os.environ['BUILDPACK_URL']
         "USING CUSTOM BUILDPACK AT "+ os.environ['BUILDPACK_URL']
