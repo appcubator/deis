@@ -581,7 +581,7 @@ def deispush(request, id=None):
     out, err, rc = models.Build.deispush(ttpath, app.owner.username)
 
     # cleanup
-    shutil.rmtree(ttpath)
+    # shutil.rmtree(ttpath) # can't do this since ttpath may have root owned files (from docker bind-mount dir)
 
     data = {'out': out, 'err': err, 'rc': rc}
     return HttpResponse(json.dumps(data), content_type="application/json")
