@@ -578,7 +578,8 @@ def deispush(request, id=None):
     p.wait()
 
     # call the slugbuilder-hook script
-    out, err, rc = models.Build.deispush(ttpath, app.owner.username)
+    buildpack_url = request.POST.get('buildpack_url', None)  #TODO get this from the app's config instead if people care enough about it.
+    out, err, rc = models.Build.deispush(ttpath, app.owner.username, buildpack_url=buildpack_url)
 
     # cleanup
     # shutil.rmtree(ttpath) # can't do this since ttpath may have root owned files (from docker bind-mount dir)

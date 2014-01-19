@@ -86,11 +86,13 @@ if __name__ == '__main__':
         os.mkdir(cache_dir)
     # build/compile
     if not args.src.endswith('.git'):
-        tar_cmd = "cat " + os.path.join(args.src, args.app + '.tar')
+        cmd = "cat " + os.path.join(args.src, args.app + '.tar')
     else:
-        tar_cmd = "git archive master"
-    cmd = tar_cmd + " | docker run -i -a stdin" \
-          " -v {cache_dir}:/tmp/cache:rw " \
+        cmd = "git archive master"
+    cmd += cmd + " | docker run -i -a stdin"
+    if 'BUILDPACK_URL' in os.environ:
+        cmd += " -e BUILDPACK_URL=" + os.environ['BUILDPACK_URL']
+    cmd += " -v {cache_dir}:/tmp/cache:rw " \
           " -v /opt/deis/build/packs:/tmp/buildpacks:rw " \
           " deis/slugbuilder"
     cmd = cmd.format(**locals())

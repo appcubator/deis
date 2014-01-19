@@ -522,7 +522,7 @@ class DeisClient(object):
         """
         Push code to build, release, run an existing application.
 
-        Usage: deis apps:push <codepath> [--app=<app>]
+        Usage: deis apps:push <codepath> [--app=<app>] [--buildpack_url=<buildpack_url>]
         """
         app = args.get('--app')
         if not app:
@@ -548,8 +548,13 @@ class DeisClient(object):
             progress.start()
             with open(tar, 'rb') as f:
                 files = { 'code': f }
+                body = {}
+                bp_url = args.get('--buildpack_url')
+                if bp_url is not None:
+                    body['buildpack_url'] = bp_url
+
                 response = self._dispatch('post',
-                                          "/api/apps/{}/deispush".format(app), files=files, headers={})
+                                          "/api/apps/{}/deispush".format(app), body=body, files=files, headers={})
         finally:
             progress.cancel()
             progress.join()

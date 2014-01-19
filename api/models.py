@@ -766,7 +766,7 @@ class Build(UuidAuditedModel):
         return "{0}-{1}".format(self.app.id, self.sha[:7])
 
     @classmethod
-    def deispush(cls, apptar, username):
+    def deispush(cls, apptar, username, buildpack_url=None):
         """
         apptar is the path where the tar of the app lives.
         """
@@ -779,6 +779,8 @@ class Build(UuidAuditedModel):
         env = os.environ.copy()
         env.update({ 'SLUG_DIR': SLUG_DIR,
                      'CONTROLLER_DIR': CONTROLLER_DIR })
+        if buildpack_url is not None:
+            env['BUILDPACK_URL'] = buildpack_url
         p = subprocess.Popen([build_hook, apptar, username], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         out, err = p.communicate()
         rc = p.wait()
