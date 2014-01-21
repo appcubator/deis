@@ -693,9 +693,12 @@ class DeisClient(object):
         """
         Run a command inside an ephemeral app container
 
-        Usage: deis apps:run <command>...
+        Usage: deis apps:run [--app=<app>] <command>...
         """
-        app = self._session.app
+        if sys.argv[2].startswith('--app='):
+            app = sys.argv.pop(2).replace('--app=', '')
+        else:
+            app = self._session.app
         body = {'command': ' '.join(sys.argv[2:])}
         response = self._dispatch('post',
                                   "/api/apps/{}/run".format(app),

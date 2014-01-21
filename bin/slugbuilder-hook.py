@@ -90,7 +90,7 @@ if __name__ == '__main__':
     else:
         cmd = "git archive master"
     cmd += " | docker run -i -a stdin"
-    if 'BUILDPACK_URL' in os.environ:
+    if 'BUILDPACK_URL' in os.environ and os.environ['BUILDPACK_URL'] != '':
         cmd += " -e BUILDPACK_URL=" + os.environ['BUILDPACK_URL']
         "USING CUSTOM BUILDPACK AT "+ os.environ['BUILDPACK_URL']
     cmd += " -v {cache_dir}:/tmp/cache:rw " \
