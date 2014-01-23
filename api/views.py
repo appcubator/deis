@@ -568,7 +568,7 @@ def deispush(request, id=None):
     # write the given tarfile to temp directory
     f = request.FILES['code']
     appdir = os.path.join(settings.TEMPDIR, 'APPS', app.id)
-    if not os.path.isfile(appdir):
+    if not os.path.isdir(appdir):
         os.makedirs(appdir)
     else:
         # delete all files except the cache directory
