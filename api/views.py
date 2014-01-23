@@ -584,7 +584,7 @@ def deispush(request, id=None):
         ff.write(f.read())
 
     # untar it. potentially unsafe. such is life.
-    p = subprocess.Popen(['tar', 'xf', app.id + '.tar'], cwd=appdir)
+    p = subprocess.Popen(['tar', 'mxf', app.id + '.tar'], cwd=appdir)
     p.wait()
 
     # call the slugbuilder-hook script
