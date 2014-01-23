@@ -52,7 +52,6 @@ from threading import Event
 from threading import Thread
 import glob
 import json
-import locale
 import os.path
 import random
 import re
@@ -73,8 +72,6 @@ import yaml
 
 __version__ = '0.4.1'
 
-
-locale.setlocale(locale.LC_ALL, '')
 
 
 class Session(requests.Session):
@@ -531,13 +528,17 @@ class DeisClient(object):
         # tar up the app
         appdir = args['<codepath>']
 
-        contents = os.listdir(appdir)
-        import tarfile
-        _t = tarfile.open(os.path.join(appdir, '_deis_payload.tar'), 'w')
-        for fname in contents:
-            _t.add(os.path.join(appdir, fname), arcname=fname)
-        _t.close()
-        tar = os.path.join(appdir, '_deis_payload.tar')
+        if appdir.endswith('.tar'):
+            # assume the user provided a tarfile
+            tar = appdir
+        else:
+            contents = os.listdir(appdir)
+            import tarfile
+            _t = tarfile.open(os.path.join(appdir, '_deis_payload.tar'), 'w')
+            for fname in contents:
+                _t.add(os.path.join(appdir, fname), arcname=fname)
+            _t.close()
+            tar = os.path.join(appdir, '_deis_payload.tar')
 
         # send it to timbuktu
 
@@ -2162,6 +2163,8 @@ def _dispatch_cmd(method, args):
     except requests.exceptions.ConnectionError as err:
         print("Couldn't connect to the Deis Controller. Make sure that the Controller URI is \
 correct and the server is running.")
+        import pdb
+        pdb.set_trace()
         sys.exit(1)
     except EnvironmentError as err:
         raise DocoptExit(err.message)

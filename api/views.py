@@ -567,22 +567,31 @@ def deispush(request, id=None):
 
     # write the given tarfile to temp directory
     f = request.FILES['code']
-    tpath = tempfile.mkdtemp()
-    ttpath = os.path.join(tpath, app.id)
-    os.mkdir(ttpath)
-    with open(os.path.join(ttpath, app.id + '.tar'), 'wb') as ff:
+    appdir = os.path.join(settings.TEMP_DIR, 'APPS', app.id)
+    if not os.path.isfile(appdir):
+        os.makedirs(appdir)
+    else:
+        # delete all files except the cache directory
+        for p in listdir(appdir):
+            if os.path.isfile(p):
+                os.remove(p)
+            else:
+                if os.path.basename(p) != 'cache':
+                    shutil.rmtree(p)
+
+    with open(os.path.join(appdir, app.id + '.tar'), 'wb') as ff:
         ff.write(f.read())
 
     # untar it. potentially unsafe. such is life.
-    p = subprocess.Popen(['tar', 'xf', app.id + '.tar'], cwd=ttpath)
+    p = subprocess.Popen(['tar', 'xf', app.id + '.tar'], cwd=appdir)
     p.wait()
 
     # call the slugbuilder-hook script
     buildpack_url = request.POST.get('buildpack_url', None)  #TODO get this from the app's config instead if people care enough about it.
-    out, err, rc = models.Build.deispush(ttpath, app.owner.username, buildpack_url=buildpack_url)
+    out, err, rc = models.Build.deispush(appdir, app.owner.username, buildpack_url=buildpack_url)
 
     # cleanup
-    # shutil.rmtree(ttpath) # can't do this since ttpath may have root owned files (from docker bind-mount dir)
+    # shutil.rmtree(appdir) # can't do this since appdir may have root owned files (from docker bind-mount dir)
 
     data = {'out': out, 'err': err, 'rc': rc}
     return HttpResponse(json.dumps(data), content_type="application/json")
