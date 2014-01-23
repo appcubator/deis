@@ -559,8 +559,8 @@ def deispush(request, id=None):
     """
     from django.http import HttpResponse
     import tempfile
-    import os
     import subprocess
+    import os
     import shutil
 
     app = request.POST['app'] = get_object_or_404(models.App, id=id)
@@ -572,7 +572,7 @@ def deispush(request, id=None):
         os.makedirs(appdir)
     else:
         # delete all files except the cache directory
-        for p in listdir(appdir):
+        for p in os.listdir(appdir):
             if os.path.isfile(p):
                 os.remove(p)
             else:
