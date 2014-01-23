@@ -573,10 +573,11 @@ def deispush(request, id=None):
     else:
         # delete all files except the cache directory
         for p in os.listdir(appdir):
+            p = os.path.join(appdir, p)
             if os.path.isfile(p):
                 os.remove(p)
             else:
-                if os.path.basename(p) != 'cache':
+                if p != 'cache':
                     shutil.rmtree(p)
 
     with open(os.path.join(appdir, app.id + '.tar'), 'wb') as ff:
