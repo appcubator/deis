@@ -578,7 +578,11 @@ def deispush(request, id=None):
                 os.remove(p)
             else:
                 if os.path.basename(p) != 'cache':
-                    shutil.rmtree(p)
+                    print os.path.basename(p)
+                    try:
+                        shutil.rmtree(p)
+                    except OSError:
+                        print "Error with " + p
 
     with open(os.path.join(appdir, app.id + '.tar'), 'wb') as ff:
         ff.write(f.read())
