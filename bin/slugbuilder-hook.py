@@ -116,7 +116,7 @@ if __name__ == '__main__':
         exit_on_error(rc, 'Could not extract slug from container')
     os.rename(os.path.join(args.src, 'slug.tgz'), slug_path)
     # extract procfile
-    cmd = 'tar xfO {slug_path} ./Procfile'.format(**locals())
+    cmd = 'tar xmfO {slug_path} ./Procfile'.format(**locals())
     p = subprocess.Popen(cmd, cwd=args.src, shell=True, stdout=subprocess.PIPE)
     rc = p.wait()
     if rc != 0:

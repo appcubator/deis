@@ -577,7 +577,7 @@ def deispush(request, id=None):
             if os.path.isfile(p):
                 os.remove(p)
             else:
-                if p != 'cache':
+                if os.path.basename(p) != 'cache':
                     shutil.rmtree(p)
 
     with open(os.path.join(appdir, app.id + '.tar'), 'wb') as ff:
