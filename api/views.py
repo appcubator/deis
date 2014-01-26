@@ -558,7 +558,6 @@ def deispush(request, id=None):
     Expects POST request with tar file of the code in the 'code' key
     """
     from django.http import HttpResponse
-    import tempfile
     import subprocess
     import os
     import shutil
@@ -567,7 +566,7 @@ def deispush(request, id=None):
 
     # write the given tarfile to temp directory
     f = request.FILES['code']
-    appdir = os.path.join(settings.TEMPDIR, 'APPS', app.id)
+    appdir = os.path.join(os.environ['CONTROLLER_DIR'], 'APPS', app.id)
     if not os.path.isdir(appdir):
         os.makedirs(appdir)
     else:
@@ -584,19 +583,16 @@ def deispush(request, id=None):
                     except OSError:
                         print "Error with " + p
 
-    with open(os.path.join(appdir, app.id + '.tar'), 'wb') as ff:
+    with open(os.path.join(appdir, app.id + '.tar.gz'), 'wb') as ff:
         ff.write(f.read())
 
-    # untar it. potentially unsafe. such is life.
-    p = subprocess.Popen(['tar', 'mxf', app.id + '.tar'], cwd=appdir)
+    # ungzip it
+    p = subprocess.Popen(['gzip', '-d', app.id + '.tar.gz'], cwd=appdir)
     p.wait()
 
     # call the slugbuilder-hook script
     buildpack_url = request.POST.get('buildpack_url', None)  #TODO get this from the app's config instead if people care enough about it.
     out, err, rc = models.Build.deispush(appdir, app.owner.username, buildpack_url=buildpack_url)
-
-    # cleanup
-    # shutil.rmtree(appdir) # can't do this since appdir may have root owned files (from docker bind-mount dir)
 
     data = {'out': out, 'err': err, 'rc': rc}
     return HttpResponse(json.dumps(data), content_type="application/json")
