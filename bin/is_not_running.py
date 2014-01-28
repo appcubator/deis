@@ -7,6 +7,8 @@ import sys
 
 
 container_data = json.loads(sys.stdin.read())
+if len(container_data) == 0:
+    sys.exit(1)
 if container_data[0]['State']['Running']:
     sys.exit(1)
 else:
