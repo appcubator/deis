@@ -52,7 +52,6 @@ from threading import Event
 from threading import Thread
 import glob
 import json
-import locale
 import os.path
 import random
 import re
@@ -71,10 +70,8 @@ from docopt import DocoptExit
 import requests
 import yaml
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
-
-locale.setlocale(locale.LC_ALL, '')
 
 
 class Session(requests.Session):
@@ -385,7 +382,7 @@ class DeisClient(object):
         self._session = Session()
         self._settings = Settings()
 
-    def _dispatch(self, method, path, body=None,
+    def _dispatch(self, method, path, body=None, files=None,
                   headers={'content-type': 'application/json'}, **kwargs):
         """
         Dispatch an API request to the active Deis controller
@@ -396,7 +393,7 @@ class DeisClient(object):
             raise EnvironmentError(
                 'No active controller. Use `deis login` or `deis register` to get started.')
         url = urlparse.urljoin(controller, path, **kwargs)
-        response = func(url, data=body, headers=headers)
+        response = func(url, files=files, data=body, headers=headers)
         return response
 
     def apps(self, args):
@@ -485,6 +482,95 @@ class DeisClient(object):
             print('Git remote deis added')
         else:
             raise ResponseError(response)
+
+    def apps_create_without_git(self, args):
+        """
+        Create a new application
+
+        If no ID is provided, one will be generated automatically.
+        If no formation is provided, the first available will be used.
+
+        Usage: deis apps:create [--id=<id> --formation=<formation>]
+        """
+        body = {}
+        for opt in ('--id', '--formation'):
+            o = args.get(opt)
+            if o:
+                body.update({opt.strip('-'): o})
+        sys.stdout.write('Creating application... ')
+        sys.stdout.flush()
+        try:
+            progress = TextProgress()
+            progress.start()
+            response = self._dispatch('post', '/api/apps',
+                                      json.dumps(body))
+        finally:
+            progress.cancel()
+            progress.join()
+        if response.status_code == requests.codes.created:  # @UndefinedVariable
+            data = response.json()
+            app_id = data['id']
+            print("done, created {}".format(app_id))
+            return app_id
+        else:
+            raise ResponseError(response)
+
+    def apps_push(self, args):
+        """
+        Push code to build, release, run an existing application.
+
+        Usage: deis apps:push <codepath> [--app=<app>] [--buildpack_url=<buildpack_url>]
+        """
+        app = args.get('--app')
+        if not app:
+            app = self._session.app
+
+        # tar up the app
+        appdir = args['<codepath>']
+
+        if appdir.endswith('.tar'):
+            raise EnvironmentError("Plz gzip your tar")
+        elif appdir.endswith('.tar.gz'):
+            # assume the user provided a tarfile
+            tar = appdir
+        else:
+            contents = os.listdir(appdir)
+            import tarfile
+            _t = tarfile.open(os.path.join(appdir, '_deis_payload.tar'), 'w')
+            for fname in contents:
+                _t.add(os.path.join(appdir, fname), arcname=fname)
+            _t.close()
+            p = subprocess.check_call(['gzip', '_deis_payload.tar'], cwd=appdir)
+            tar = os.path.join(appdir, '_deis_payload.tar.gz')
+
+        # send it to timbuktu
+
+        sys.stdout.write('Pushing code... ')
+        sys.stdout.flush()
+        try:
+            progress = TextProgress()
+            progress.start()
+            with open(tar, 'rb') as f:
+                files = { 'code': f }
+                body = {}
+                bp_url = args.get('--buildpack_url')
+                if bp_url is not None:
+                    body['buildpack_url'] = bp_url
+
+                response = self._dispatch('post',
+                                          "/api/apps/{}/deispush".format(app), body=body, files=files, headers={})
+        finally:
+            progress.cancel()
+            progress.join()
+            os.remove(tar)
+
+        # case on the response
+        if response.status_code == requests.codes.ok:  # @UndefinedVariable
+            print(response.text)
+            return response.json()
+        else:
+            raise ResponseError(response)
+
 
     def apps_destroy(self, args):
         """
@@ -611,9 +697,12 @@ class DeisClient(object):
         """
         Run a command inside an ephemeral app container
 
-        Usage: deis apps:run <command>...
+        Usage: deis apps:run [--app=<app>] <command>...
         """
-        app = self._session.app
+        if sys.argv[2].startswith('--app='):
+            app = sys.argv.pop(2).replace('--app=', '')
+        else:
+            app = self._session.app
         body = {'command': ' '.join(sys.argv[2:])}
         response = self._dispatch('post',
                                   "/api/apps/{}/run".format(app),
@@ -2034,6 +2123,7 @@ def parse_args(cmd):
         'login': 'auth:login',
         'logout': 'auth:logout',
         'create': 'apps:create',
+        'push': 'apps:push',
         'destroy': 'apps:destroy',
         'ps': 'containers:list',
         'info': 'apps:info',
@@ -2076,6 +2166,8 @@ def _dispatch_cmd(method, args):
     except requests.exceptions.ConnectionError as err:
         print("Couldn't connect to the Deis Controller. Make sure that the Controller URI is \
 correct and the server is running.")
+        import pdb
+        pdb.set_trace()
         sys.exit(1)
     except EnvironmentError as err:
         raise DocoptExit(err.message)
