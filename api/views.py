@@ -587,8 +587,7 @@ def deispush(request, id=None):
         ff.write(f.read())
 
     # ungzip it
-    p = subprocess.Popen(['gzip', '-d', app.id + '.tar.gz'], cwd=appdir)
-    p.wait()
+    subprocess.check_call(['gzip', '-d', app.id + '.tar.gz'], cwd=appdir)
 
     # call the slugbuilder-hook script
     buildpack_url = request.POST.get('buildpack_url', None)  #TODO get this from the app's config instead if people care enough about it.
