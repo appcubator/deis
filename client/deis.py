@@ -529,6 +529,8 @@ class DeisClient(object):
         appdir = args['<codepath>']
 
         if appdir.endswith('.tar'):
+            raise EnvironmentError("Plz gzip your tar")
+        elif appdir.endswith('.tar.gz'):
             # assume the user provided a tarfile
             tar = appdir
         else:
@@ -538,7 +540,8 @@ class DeisClient(object):
             for fname in contents:
                 _t.add(os.path.join(appdir, fname), arcname=fname)
             _t.close()
-            tar = os.path.join(appdir, '_deis_payload.tar')
+            p = subprocess.check_call(['gzip', '_deis_payload.tar'], cwd=appdir)
+            tar = os.path.join(appdir, '_deis_payload.tar.gz')
 
         # send it to timbuktu
 
