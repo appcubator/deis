@@ -24,7 +24,7 @@ from json_field.fields import JSONField  # @UnusedImport
 
 from api import fields, tasks
 from provider import import_provider_module
-from utils import dict_diff
+from utils import dict_diff, generate_app_name
 
 
 logger = logging.getLogger(__name__)
@@ -469,6 +469,36 @@ class App(UuidAuditedModel):
 
     def __str__(self):
         return self.id
+
+    @classmethod
+    def bulk_create(cls, formation, owner, n, release):
+        for i in xrange(n):
+            a = App(formation=formation,
+                    owner=owner,
+                    id=generate_app_name())
+            a.save()
+
+            build = release.build
+            build.pk = None
+            build.owner = owner
+            build.app = a
+            build.save()
+
+            config = release.config
+            config.pk = None
+            config.owner = owner
+            config.app = a
+            config.save()
+
+            release.pk = None
+            release.owner = owner
+            release.app = a
+            release.config = config
+            release.build = build
+            release.save()
+        formation.converge()
+
+
 
     def flat(self):
         return {'id': self.id,
