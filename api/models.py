@@ -473,10 +473,9 @@ class App(UuidAuditedModel):
     @classmethod
     def bulk_create(cls, formation, owner, n, release):
         for i in xrange(n):
-            a = App(formation=formation,
+            a = App.objects.create(formation=formation,
                     owner=owner,
                     id=generate_app_name())
-            a.save()
 
             build = release.build
             build.pk = None
