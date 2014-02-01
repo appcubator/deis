@@ -495,6 +495,10 @@ class App(UuidAuditedModel):
             release.config = config
             release.build = build
             release.save()
+
+            Container.objects.scale(a, {'web': 1})
+
+        formation.publish()
         formation.converge()
 
 
