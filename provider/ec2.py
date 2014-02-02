@@ -220,7 +220,7 @@ def _prepare_run_kwargs(params):
         bdm = ec2.blockdevicemapping.BlockDeviceMapping()
         bdm['/dev/sda1'] = dev_sda1
 
-    kwargs['block_device_mapping'] = init_bdm(params.get('storage_size', 40))
+    ## kwargs['block_device_mapping'] = init_bdm(params.get('storage_size', 40))
 
     return kwargs
 
